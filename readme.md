@@ -1,6 +1,12 @@
 Specification for universal framebuffer bindings on reMarkable tablets
 ===================================================================
 
+Version: 0.1
+
+**WARNING: This specification is a work in progress and not in use yet**
+
+Please feel free to file bugs and pull requests to improve it!
+
 Motivation
 -------------------------------------------------------------------
 At the moment, various competing implementations of acquiring a
@@ -8,6 +14,7 @@ framebuffer for the different reMarkable devices (1, 2 and Paper Pro)
 with different firmware compatibility exist within the homebrew
 scene: Raw /dev/fb0 access, rm2fb, qtfb, access through libgsqepaper.so,
 etc.
+
 Applications ported to or developed for the reMarkable have varying
 levels of support for those framebuffer formats. This document aims to
 standardise a set of function signatures for the C language, that
@@ -79,7 +86,7 @@ in order of preference, where the element with index 0 is that with
 the highest priority. The application can set any field to 0 to signify
 that it will accept any value for this field.
 
-It shall then pass this array and its size to the following function:
+It shall then pass this array and its size to the following function:  
 `struct FBRequest *urmfb_acquire(struct FBRequest requests[], unsigned n_requests)`
 
 The implementation of urmfb_acquire() shall choose the request with the
@@ -112,7 +119,7 @@ in the field pix_fmt and use the cast pointer for all interactions with the
 framebuffer.
 
 The application shall only read or write to data pointed to by a pointer of
-in the following range:
+in the following range:  
 `(fb_ptr + x + (line_stride * y)`
 where
 `0 <= x < width` and `0 <= y < height`
@@ -127,10 +134,8 @@ Requesting screen updates
 ------------------------------------------------------------------------
 
 To update portions of the screen to reflect the contents of the framebuffer,
-the application may call one of the following function:
-
-`void urmfb_update_sync(void *fb, unsigned left, unsigned top, unsigned right, unsigned bottom, enum UpdateMode update_mode)`
-
+the application may call one of the following function:  
+`void urmfb_update_sync(void *fb, unsigned left, unsigned top, unsigned right, unsigned bottom, enum UpdateMode update_mode)`  
 `int urmfb_update_async(void *fb, unsigned left, unsigned top, unsigned right, unsigned bottom, enum UpdateMode update_mode)`
 
 where fb is set to the first byte of an acquired and unreleased framebuffer,
@@ -175,8 +180,7 @@ update requests are queued properly. It may return the same handle for
 multiple updates.
 
 In case the application has received a valid handle from `urmfb_update_async()`,
-it may wait for its completion by calling
-
+it may wait for its completion by calling  
 `void urmfb_await_update(int handle)`
 
 An implementation that does not support waiting for the completion of a
@@ -191,8 +195,7 @@ Releasing the framebuffer
 ------------------------------------------------------------------------
 
 To release the framebuffer, the application shall call the following
-function with the pointer to the first byte of the framebuffer:
-
+function with the pointer to the first byte of the framebuffer:  
 `void urmfb_release(void *fb)`
 
 The implementation shall de-allocate all internal data and release
@@ -208,6 +211,11 @@ routines shall link `liburmfb.so`. The user is responsible for providing
 an implementation compatible with their device and firmware in a standard
 location within LD_LIBRARY_PATH such as '/usr/lib' or to pre-load a 
 compatible implementation through LD_PRELOAD.
+
+A header file `urmfb.h` is provided with this specification. Neither
+implementations nor applications shall supply their own header files
+that differ from the one provided by this specification, with the exception
+of changes explicitly allowed by the specification.
 
 Equivalent bindings can be provided for other programming languages by
 calling the functions provided inside `liburmfb.so` in a standard location on
